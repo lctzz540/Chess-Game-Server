@@ -8,6 +8,14 @@ import (
 )
 
 func Websocket(app *fiber.App) {
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
 	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
 		log.Println(c.Locals("allowed"))
 		log.Println(c.Params("id"))
