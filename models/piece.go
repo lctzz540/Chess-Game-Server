@@ -1,19 +1,18 @@
 package models
 
 import (
-	"fmt"
 	"strconv"
 )
 
 type Piece struct {
-	Square     string
+	initSquare string
 	VectorMove [][]int
 	Name       string
 	IsWhite    bool
 	Coordinate []int
 }
 
-func squareToCoordinate(square string) []int {
+func SquareToCoordinate(square string) []int {
 	var coordinate []int
 	var row = []string{"a", "b", "c", "d", "e", "f", "g", "h"}
 	for index, value := range row {
@@ -21,10 +20,7 @@ func squareToCoordinate(square string) []int {
 			coordinate = append(coordinate, index)
 		}
 	}
-	num, err := strconv.Atoi(string(square[1]))
-	if err != nil {
-		fmt.Println("Lỗi chuyển đổi chuỗi thành số nguyên:", err)
-	}
+	num, _ := strconv.Atoi(string(square[1]))
 	coordinate = append(coordinate, num-1)
 	return coordinate
 }
@@ -36,10 +32,10 @@ func King(isWhite bool) *Piece {
 	} else {
 		square = "e8"
 	}
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}},
 		Name:       "king",
 		IsWhite:    isWhite,
@@ -54,9 +50,9 @@ func Queen(isWhite bool) *Piece {
 	} else {
 		square = "d8"
 	}
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}},
 		Name:       "queen",
 		IsWhite:    isWhite,
@@ -78,9 +74,9 @@ func Bishop(isWhite bool, isLeft bool) *Piece {
 			}
 		}
 	}
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{-1, 1}, {1, 1}, {-1, -1}, {1, 1}},
 		Name:       "bishop",
 		IsWhite:    isWhite,
@@ -103,9 +99,9 @@ func Knight(isWhite bool, isLeft bool) *Piece {
 			}
 		}
 	}
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{-2, 1}, {1, -2}, {2, 1}, {2, -1}},
 		Name:       "knight",
 		IsWhite:    isWhite,
@@ -127,9 +123,9 @@ func Rock(isWhite bool, isLeft bool) *Piece {
 			}
 		}
 	}
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{1, 0}, {0, 1}, {-1, 0}, {-0, -1}},
 		Name:       "rock",
 		IsWhite:    isWhite,
@@ -137,9 +133,9 @@ func Rock(isWhite bool, isLeft bool) *Piece {
 	}
 }
 func Pawn(isWhite bool, square string) *Piece {
-	coordinate := squareToCoordinate(square)
+	coordinate := SquareToCoordinate(square)
 	return &Piece{
-		Square:     square,
+		initSquare: square,
 		VectorMove: [][]int{{1, 1}},
 		Name:       "pawn",
 		IsWhite:    isWhite,

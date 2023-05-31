@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/lctzz540/chessaiserver/middlewares"
-	"github.com/lctzz540/chessaiserver/models"
 	"github.com/lctzz540/chessaiserver/routes"
+	"github.com/lctzz540/chessaiserver/utils"
 )
 
 func main() {
@@ -24,8 +24,8 @@ func main() {
 	routes.Websocket(app)
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		game := models.InitChessBoard()
-		return c.SendString(strconv.Itoa(len(game)))
+		chessBoard := utils.InitChessBoard()
+		return c.SendString(strconv.Itoa(len(chessBoard)))
 	})
 
 	app.Listen(":3000")
