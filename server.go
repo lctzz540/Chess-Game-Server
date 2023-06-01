@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +11,7 @@ import (
 )
 
 func main() {
+	utils.SetupRedis()
 	app := fiber.New()
 
 	middlewares.CorsMiddleware(app)
@@ -24,8 +24,7 @@ func main() {
 	routes.Websocket(app)
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		chessBoard := utils.InitChessBoard()
-		return c.SendString(strconv.Itoa(len(chessBoard)))
+		return c.SendString("Hello")
 	})
 
 	app.Listen(":3000")
