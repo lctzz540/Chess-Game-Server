@@ -1,65 +1,48 @@
 package routes
 
 import (
+	"context"
+	"encoding/json"
 	"log"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"github.com/lctzz540/chessaiserver/handlers"
+	"github.com/lctzz540/chessaiserver/middlewares"
+	"github.com/lctzz540/chessaiserver/models"
 )
 
-type ConnectionCount struct {
-	Count   int
-	MaxConn int
-}
+var connections = make(map[string]*models.ConnectionCount)
 
-var connections = make(map[string]*ConnectionCount)
+func Websocket(app *fiber.App, redisClient *redis.Client) {
+	app.Use("/ws", middlewares.WebSocketConnection())
 
-func Websocket(app *fiber.App) {
-	app.Use("/ws", func(c *fiber.Ctx) error {
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
-		}
-		return fiber.ErrUpgradeRequired
-	})
-
-	app.Use("/ws/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-
-		connCount, ok := connections[id]
-		if ok && connCount.Count >= connCount.MaxConn {
-			log.Printf("Rejected WebSocket connection: %s\n", id)
-			return fiber.ErrTooManyRequests
+	app.Get("/ws/:id", middlewares.ConnectToRoomID(connections), websocket.New(func(c *websocket.Conn) {
+		roomId := c.Params("id")
+		ctx := context.Background()
+		chessGame := handlers.StartGame(ctx, roomId, redisClient)
+		if chessGame == nil {
+			return
 		}
 
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
-		}
-
-		return fiber.ErrUpgradeRequired
-	})
-
-	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
-		id := c.Params("id")
-
-		connCount, ok := connections[id]
+		connCount, ok := connections[roomId]
 		if !ok {
-			connCount = &ConnectionCount{Count: 0, MaxConn: 2}
-			connections[id] = connCount
+			connCount = &models.ConnectionCount{Count: 0, MaxConn: 2}
+			connections[roomId] = connCount
 		}
 		if connCount.Count >= connCount.MaxConn {
-			log.Printf("Rejected WebSocket connection: %s\n", id)
+			log.Printf("Rejected WebSocket connection: %s\n", roomId)
 			c.Close()
 			return
 		}
 		connCount.Count++
 
-		log.Println("New WebSocket connection:", id)
+		log.Println("New WebSocket connection:", roomId)
 
 		defer func() {
 			connCount.Count--
-			log.Println("WebSocket connection closed:", id)
+			log.Println("WebSocket connection closed:", roomId)
 		}()
 
 		for {
@@ -68,8 +51,18 @@ func Websocket(app *fiber.App) {
 				log.Println("WebSocket read error:", err)
 				break
 			}
+			var move models.Move
+			if err := json.Unmarshal(p, &move); err != nil {
+				log.Println("Failed to unmarshal move:", err)
+				continue
+			}
+			err = handlers.MakeMove(ctx, chessGame, roomId, &move, redisClient)
+			if err != nil {
+				log.Println("Failed to make move:", err)
+				return
+			}
 
-			log.Printf("Received message from client %s: %s\n", id, string(p))
+			log.Printf("Received message from client %s: %s\n", roomId, string(p))
 		}
 	}))
 }

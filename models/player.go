@@ -1,6 +1,6 @@
 package models
 
 type Player struct {
-	UserID   string
-	UserName string
+	UserName string `json:"userName"`
+	white    bool
 }

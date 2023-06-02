@@ -6,14 +6,11 @@ import (
 	"log"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gofiber/fiber/v2"
 )
 
-var RedisClient *redis.Client
-
-func SetupRedis() {
+func SetupRedis() *redis.Client {
 	// Create a new Redis client
-	RedisClient = redis.NewClient(&redis.Options{
+	RedisClient := redis.NewClient(&redis.Options{
 		Addr:     "127.0.0.1:6379", // Redis container hostname and port
 		Password: "",               // Redis server password, if any
 		DB:       0,                // Redis database index
@@ -26,18 +23,12 @@ func SetupRedis() {
 	}
 
 	fmt.Println("Connected to Redis")
+	return RedisClient
 }
 
-func CloseRedis() {
+func CloseRedis(RedisClient *redis.Client) {
 	// Close the Redis connection when done
 	if err := RedisClient.Close(); err != nil {
 		log.Println("Error closing Redis connection:", err)
-	}
-}
-
-func RedisMiddleware() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		c.Locals("redis", RedisClient)
-		return c.Next()
 	}
 }

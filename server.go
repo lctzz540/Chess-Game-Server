@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	utils.SetupRedis()
+	redisClient := utils.SetupRedis()
 	app := fiber.New()
 
 	middlewares.CorsMiddleware(app)
@@ -21,7 +21,7 @@ func main() {
 			return strings.Contains(c.Route().Path, "/ws")
 		},
 	}))
-	routes.Websocket(app)
+	routes.Websocket(app, redisClient)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello")

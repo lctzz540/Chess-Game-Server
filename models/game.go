@@ -1,7 +1,8 @@
 package models
 
 type Move struct {
-	From  string `json:"from"`
-	To    string `json:"to"`
-	White bool   `json:"white"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	White     bool   `json:"white"`
+	Promotion string `json:"promotion"`
 }
